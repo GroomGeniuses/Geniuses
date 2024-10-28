@@ -1,0 +1,47 @@
+header {
+  width: 98%;
+  display: flex;
+  justify-content: space-between; /* 양쪽 끝으로 정렬 */
+  align-items: center;
+  padding: 20px 0;
+  position: relative;
+  background-color: #CDCDCD;
+  margin-bottom: 30px; /* 헤더와 검색창 사이 간격 */
+  height: 60px;
+}
+
+h1 {
+  flex-grow: 1; 
+  text-align: center;
+  margin: 0; /* 기본 여백 제거 */
+}
+
+.profile-section {
+  display: flex;
+  align-items: center;
+  position: absolute; /* 프로필 섹션을 절대 위치로 설정 */
+  right: 20px; /* 오른쪽에서의 거리 */
+}
+
+.profile-pic {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%; /* 둥글게 만들기 */
+  margin-left: 10px; /* 버튼과의 간격 */
+  margin-right: 10px; /* 헤더 끝과의 간격 */
+}
+
+.login-btn {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  background-color: #f1f1f1;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.nickname {
+  margin-right: -60px;
+  font-weight: bold; /* 닉네임 강조 */
+  display: inline-block;
+}
