@@ -10,6 +10,7 @@ import Main from './pages/Main';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import MemberPage from './pages/MemberPage';
+import Base from './components/BaseAuth';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -19,8 +20,8 @@ root.render(
         <Route path="/" element={<App />}>
           <Route path="" element={<Main />} />
           <Route path="main" element={<Main />} />
-          <Route path="login" element={<Login />} />
-          <Route path="signup" element={<Signup />} />
+          <Route path="login" element={<Base component={<Login />} />} />
+          <Route path="signup" element={<Base component={<Signup />} />} />
           <Route path="member/:memberId" element={<MemberPage />} />
         </Route>
       </Routes>

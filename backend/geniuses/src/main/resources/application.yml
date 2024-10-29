@@ -55,8 +55,9 @@ spring:
             client-id: ${KAKAO_CLIENT_ID} #[kakao developer 왼쪽 탭 > 앱설정 > 앱 키 > RESTAPI키 ]
             client-secret: ${KAKAO_CLIENT_SECRET} #[kakao developer 왼쪽 탭 > 제품설정 > 카카오로그인 > 보안 > client secret ]
             scope:
-#              - account_email
+              - account_email
               - profile_nickname
+              - profile_image
             client-name: Kakao
             authorization-grant-type: authorization_code
             redirect-uri: http://localhost:8080/login/oauth2/code/kakao
