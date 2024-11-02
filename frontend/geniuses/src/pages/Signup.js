@@ -1,6 +1,6 @@
 import React from 'react';
 import TextButton from '../components/TextButton';
-import api from '../_api/api';
+import api, { axiosApi } from '../_api/api';
 function InputText(props) {
   return (
     <div className="grid grid-cols-3 w-96">
@@ -19,11 +19,23 @@ function InputText(props) {
   );
 }
 export default function Signup() {
+  const handlerSubmit = event => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const jsonSignup = {
+      loginId: formData.get('loginId'),
+      password: formData.get('password'),
+      passwordCheck: formData.get('passwordCheck'),
+    };
+    // axiosApi.signup(formData.get('nickname'), formData.get('loginId'), formData.get('password'), formData.get('passwordCheck'), formData.get('comment'));
+    axiosApi.signup(jsonSignup);
+  };
   return (
     <div>
       <div className="font-bold text-2xl">회원가입</div>
       <br />
-      <form method="post" action={api.signup()}>
+      <form method="post" onSubmit={handlerSubmit}>
+        {/* <form method="post" action={api.signup()}> */}
         <InputText required={true} labelText="*닉네임" type="text" id="nickname" placeHolder="nickname" />
         <br />
         <InputText required={true} labelText="*ID(e-mail)" type="text" id="loginId" placeHolder="example@google.com" />

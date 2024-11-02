@@ -30,9 +30,11 @@ const api = {
 const axiosHeaders = {
   'Content-Type': 'multipart/form-data',
   'Access-Control-Allow-Credentials': true,
-  'Access-Control-Allow-Origin': 'https://localhost:8080, https://localhost:3000',
+  // 'Access-Control-Allow-Origin': 'https://localhost:8080, https://localhost:3000',
+  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'Authorization, RefreshToken, Content-Type',
-  'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Methods': '*',
+  // 'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT, DELETE, OPTIONS',
 };
 const axiosApi = {
   login: (loginId, password) => {
@@ -55,6 +57,19 @@ const axiosApi = {
       .catch(error => {
         alert('error');
         console.log(error);
+      });
+  },
+  // signup: (nickname, loginId, password, passwordCheck, comment) => {
+  signup: data => {
+    return axios
+      .post(api.signup(), data, axiosHeaders)
+      .then(response => {
+        window.location.href = '/login';
+      })
+      .catch(error => {
+        console.log(error.response);
+        alert(error.response.data);
+        window.location.href = '/signup';
       });
   },
 };

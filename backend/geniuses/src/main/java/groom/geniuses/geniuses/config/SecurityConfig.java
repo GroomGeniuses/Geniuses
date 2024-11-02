@@ -19,12 +19,26 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 @Slf4j
 public class SecurityConfig {
+    public static final String DOMAIN = "http://localhost:3000"; // 로컬용
+//    public static final String DOMAIN = "[도메인]"; // 배포용
+    public static final String HOME = DOMAIN;
+    public static final String LOGIN = DOMAIN + "/login";
+    public static final String SIGNUP = DOMAIN + "/signup";
+    public static final String OAUTH2_GOOGLE = "/oauth2/authorization/google";
+    public static final String OAUTH2_KAKAO = "/oauth2/authorization/kakao";
+
+
     private final AuthenticationConfiguration configuration;
     private final JWTUtil jwtUtil;
     private final MemberRepository memberRepository;
@@ -34,7 +48,21 @@ public class SecurityConfig {
         return configuration.getAuthenticationManager();
     }
     @Bean
+    public CorsConfigurationSource corsConfigurationSource(){
+        CorsConfiguration corsConfiguration = new CorsConfiguration();
+        corsConfiguration.setAllowedOrigins(List.of("http://localhost:3000", SecurityConfig.DOMAIN));
+        corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"));
+        corsConfiguration.setAllowCredentials(true);
+        corsConfiguration.setAllowedHeaders(List.of("Authorization", "RefreshToken", "Content-Type"));
+        corsConfiguration.setMaxAge(3600L);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", corsConfiguration);
+        return source;
+    }
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
+        // cors
+        http.cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer.configurationSource(corsConfigurationSource()));
         // 같은 origin에서 접근 허용
         http.headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));
         // api 접근 권한 설정
@@ -46,41 +74,41 @@ public class SecurityConfig {
                 .anyRequest().permitAll());
         // 폼 로그인 방식 설정
         http.formLogin((auth) -> auth
-                .loginPage(WebConfig.LOGIN)
+                .loginPage(SecurityConfig.LOGIN)
                 .loginProcessingUrl("/api/auth/login/form")
                 .usernameParameter("loginId")
                 .passwordParameter("password")
-                .defaultSuccessUrl(WebConfig.HOME)
+                .defaultSuccessUrl(SecurityConfig.HOME)
                 .successHandler((request, response, authentication)->{
                     log.info("formLogin successHandler auth");
                     setJWT(response, authentication);
-                    response.sendRedirect(WebConfig.HOME);
+                    response.sendRedirect(SecurityConfig.HOME);
                 })
                 .failureUrl("/oauth2-login/login")
                 .failureHandler((request, response, authentication)->{
                     log.info("formLogin failureHandler\nrequest : {}\nresponse : {}\nauthentication : {}\n\n", request, response, authentication);
-                    response.sendRedirect(WebConfig.LOGIN);
+                    response.sendRedirect(SecurityConfig.LOGIN);
                 })
                 .permitAll());
         // OAuth 2.0 로그인 방식 설정
         http.oauth2Login((auth) -> auth
-                .loginPage(WebConfig.LOGIN)
-                .defaultSuccessUrl(WebConfig.HOME)
+                .loginPage(SecurityConfig.LOGIN)
+                .defaultSuccessUrl(SecurityConfig.HOME)
                 .successHandler((request, response, authentication)->{
                     log.info("oauth2Login successHandler auth");
                     setJWT(response, authentication);
-                    response.sendRedirect(WebConfig.HOME);
+                    response.sendRedirect(SecurityConfig.HOME);
                 })
-                .failureUrl(WebConfig.LOGIN)
+                .failureUrl(SecurityConfig.LOGIN)
                 .failureHandler((request, response, authentication)->{
                     log.info("oauth2Login failureHandler\nrequest : {}\nresponse : {}\nexception : {}\n\n", request, response, authentication);
-                    response.sendRedirect(WebConfig.LOGIN);
+                    response.sendRedirect(SecurityConfig.LOGIN);
                 })
                 .permitAll());
         // 로그아웃 URL 설정
         http.logout((auth) -> auth
 //                .logoutUrl("[api logout uri]")
-                .logoutSuccessUrl(WebConfig.HOME)); // 로그아웃 성공 시 redirect
+                .logoutSuccessUrl(SecurityConfig.HOME)); // 로그아웃 성공 시 redirect
         // csrf : 사이트 위변조 방지 설정 (스프링 시큐리티에는 자동으로 설정 되어 있음)
         // csrf기능 켜져있으면 post 요청을 보낼때 csrf 토큰도 보내줘야 로그인 진행됨 !
         // 개발단계에서만 csrf 잠시 꺼두기
