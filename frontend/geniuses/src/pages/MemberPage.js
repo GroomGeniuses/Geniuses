@@ -1,108 +1,85 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from './Header';
-import './MemberPage.css';
-import profilePic from './user_profile.png';
+import Profile from '../components/memberPage/Profile';
+import Tabs from '../components/memberPage/Tabs';
+import useFetchUserData from '../components/memberPage/useFetchUserData';
+import Pagination from '../components/memberPage/Pagination';
 
-const MemberPage = ({ isLoggedIn, nickname, onLogout }) => {
+const MemberPage = ({ nickname, userId }) => {
   const navigate = useNavigate();
-  const [userDescription, setUserDescription] = useState('사용자 설명'); // 사용자 설명 상태 추가
-  const [isEditing, setIsEditing] = useState(false); // 수정 모드 상태 추가
-  const [currentPage, setCurrentPage] = useState(1); // 현재 페이지 상태 추가
+  const { userDescription, setUserDescription } = useFetchUserData(userId);
+  const [isEditing, setIsEditing] = useState(false);
+  const [activeTab, setActiveTab] = useState('작성한 글');
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = 1;
 
-  const handleWriteButtonClick = () => {
-    navigate('/post'); // 글쓰기 버튼 클릭 시 /post로 이동
+  const handleSave = async () => {
+    const response = await fetch(`/api/users/${userId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ description: userDescription }),
+    });
+
+    if (response.ok) setIsEditing(false);
   };
 
   const handlePageClick = pageNumber => {
-    setCurrentPage(pageNumber); // 클릭한 페이지 번호로 현재 페이지 업데이트
-  };
-
-  const handleLogout = () => {
-    onLogout();
-    navigate('/');
-  };
-
-  const handleDescriptionChange = e => {
-    setUserDescription(e.target.value); // 설명 업데이트
-  };
-
-  const handleEditProfile = () => {
-    setIsEditing(!isEditing); // 수정 모드 토글
-  };
-
-  const handleSave = () => {
-    // 저장 로직 (API 호출 등) 추가 가능
-    setIsEditing(false); // 수정 모드 종료
-    // 예: API에 저장하는 코드를 추가할 수 있습니다.
-    console.log('저장된 설명:', userDescription);
+    setCurrentPage(pageNumber);
   };
 
   return (
-    <div className="profile-page">
-      <Header isLoggedIn={isLoggedIn} nickname={nickname} onLogout={handleLogout} />
-      <div className="member-container">
-        <div className="profile-container">
-          <div className="profile-circle">
-            <img src={profilePic} alt="Profile" className="profile-image" />
-          </div>
-          <div className="profile-info">
-            <h3>{nickname}님</h3>
-            {isEditing ? (
-              <>
-                <textarea
-                  className="user-description left" // 왼쪽 정렬 클래스 추가
-                  value={userDescription}
-                  onChange={handleDescriptionChange}
-                  rows={4}
-                />
-                <button className="edit-profile" onClick={handleSave}>
-                  저장
-                </button>
-              </>
-            ) : (
-              <>
-                <p className="user-description">{userDescription}</p>
-                <button className="edit-profile" onClick={handleEditProfile}>
-                  프로필 수정
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-        <div className="post-container">
-          <div className="tabs">
-            <span className="tab active">작성한 글</span>
-            <span className="tab">신청한 글</span>
-          </div>
-          <button className="write-button" onClick={handleWriteButtonClick}>
+    <div className="profile-page mx-auto p-5">
+      <div className="member-container flex flex-col items-center w-full max-w-xl p-2 border border-gray-300 rounded-lg bg-gray-100 shadow-md mx-auto">
+        <Profile
+          nickname={nickname}
+          userDescription={userDescription}
+          isEditing={isEditing}
+          onEdit={() => setIsEditing(!isEditing)}
+          onSave={handleSave}
+          onDescriptionChange={e => setUserDescription(e.target.value)}
+        />
+        <div className="post-container flex flex-col items-center">
+          <Tabs activeTab={activeTab} onTabClick={setActiveTab} />
+          <button className="write-button px-3 py-1 bg-blue-600 text-white border-none rounded-md cursor-pointer text-sm ml-auto -mr-16 hover:bg-blue-700" onClick={() => navigate('/post')}>
             글쓰기
           </button>
-          <div className="post-section">
-            <div className="post-grid">
-              {Array(9)
-                .fill('')
-                .map((_, index) => (
-                  <div key={index} className="post-box"></div>
-                ))}
-            </div>
+          <div className="post-section flex flex-col items-start justify-end w-full max-w-2xl">
+            {activeTab === '작성한 글' ? (
+              <div className="post-grid grid grid-cols-3 grid-rows-3 gap-2 w-full max-w-[600px]">
+                {Array(9)
+                  .fill('')
+                  .map((_, index) => (
+                    <div key={index} className="post-box w-24 h-24 bg-gray-300 flex justify-center items-center rounded-md"></div>
+                  ))}
+              </div>
+            ) : (
+              <div className="status-section grid grid-cols-4 gap-2 -ml-[110px]">
+                <div className="status-row contents">
+                  <span className="status-label font-bold text-right h-[90px] leading-[100px]">진행중</span>
+                  <div className="post-box w-24 h-24 bg-gray-300 flex justify-center items-center rounded-md"></div>
+                  <div className="post-box w-24 h-24 bg-gray-300 flex justify-center items-center rounded-md"></div>
+                  <div className="post-box w-24 h-24 bg-gray-300 flex justify-center items-center rounded-md"></div>
+                </div>
+                <div className="status-row contents">
+                  <span className="status-label font-bold text-right h-[90px] leading-[100px]">합격</span>
+                  <div className="post-box w-24 h-24 bg-gray-300 flex justify-center items-center rounded-md"></div>
+                  <div className="post-box w-24 h-24 bg-gray-300 flex justify-center items-center rounded-md"></div>
+                  <div className="post-box w-24 h-24 bg-gray-300 flex justify-center items-center rounded-md"></div>
+                </div>
+                <div className="status-row contents">
+                  <span className="status-label font-bold text-right h-[90px] leading-[100px]">불합격</span>
+                  <div className="post-box w-24 h-24 bg-gray-300 flex justify-center items-center rounded-md"></div>
+                  <div className="post-box w-24 h-24 bg-gray-300 flex justify-center items-center rounded-md"></div>
+                  <div className="post-box w-24 h-24 bg-gray-300 flex justify-center items-center rounded-md"></div>
+                </div>
+              </div>
+            )}
           </div>
-          <div className="pagination">
-            {Array(3)
-              .fill('')
-              .map((_, index) => {
-                const pageNumber = index + 1; // 페이지 번호 설정
-                return (
-                  <span
-                    key={pageNumber}
-                    className={`page-number ${currentPage === pageNumber ? 'active' : ''}`}
-                    onClick={() => handlePageClick(pageNumber)} // 클릭 시 핸들러 호출
-                  >
-                    {pageNumber}
-                  </span>
-                );
-              })}
-          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageClick={handlePageClick}
+          />
         </div>
       </div>
     </div>

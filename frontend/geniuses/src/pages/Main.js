@@ -1,46 +1,11 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Route, Routes, Link, useNavigate } from 'react-router-dom';
-import './Main.css';
-import MemberPage from './MemberPage';
-import Header from './Header';
-import LoginPage from './Login';
+import { Link } from 'react-router-dom';
+import SearchSort from '../components/main/SearchSort';
+import Filtering from '../components/main/Filtering';
 
 const Main = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [nickname, setNickname] = useState('');
-
-  // 로그인 함수
-  const handleLogin = nickname => {
-    setIsLoggedIn(true);
-    setNickname(nickname); // 닉네임 설정
-  };
-
-  // 로그아웃 함수
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    setNickname(''); // 닉네임 초기화
-  };
-
-  return (
-    // <Router>
-    //   <Routes>
-    //     <Route path="/" element={<MainContent isLoggedIn={isLoggedIn} nickname={nickname} handleLogout={handleLogout} />} />
-    //     <Route path="/MemberPage" element={<MemberPage isLoggedIn={true} nickname={nickname} onLogout={handleLogout} />} />
-
-    //     <Route
-    //       path="/login"
-    //       element={<LoginPage onLogin={handleLogin} />} // onLogin prop 전달
-    //     />
-    //   </Routes>
-    // </Router>
-    <MainContent isLoggedIn={isLoggedIn} nickname={nickname} handleLogout={handleLogout} />
-  );
-};
-
-const MainContent = ({ isLoggedIn, nickname, handleLogout }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortType, setSortType] = useState('popularity');
-  const navigate = useNavigate();
 
   // 샘플 게시물
   const posts = [
@@ -55,45 +20,29 @@ const MainContent = ({ isLoggedIn, nickname, handleLogout }) => {
     { author: '작성자3', title: '글제목3', rating: 3, date: '2024-10-09' },
   ];
 
-  // 게시물 정렬 및 필터링
-  const sortedPosts = posts.sort((a, b) => {
-    if (sortType === 'popularity') {
-      return b.rating - a.rating;
-    }
-    return new Date(b.date) - new Date(a.date);
-  });
-
-  const filteredPosts = sortedPosts.filter(post => post.title.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredPosts = Filtering({ posts, searchTerm, sortType });
 
   return (
-    <div className="app">
-      <Header isLoggedIn={isLoggedIn} nickname={nickname} onLogout={handleLogout} />
-
-      {/* 검색 및 정렬 */}
-      <div className="search-section">
-        <input type="text" placeholder="Search" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
-        <div className="sorting">
-          <button className={sortType === 'popularity' ? 'active' : ''} onClick={() => setSortType('popularity')}>
-            인기순
-          </button>
-          <button className={sortType === 'date' ? 'active' : ''} onClick={() => setSortType('date')}>
-            최신순
-          </button>
-        </div>
-      </div>
-      <div className="post-list">
-        <Link to="/post" className="add-button">
+    <div className="app font-sans w-full mx-auto p-5">
+      <SearchSort 
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        sortType={sortType}
+        setSortType={setSortType}
+      />
+      <div className="post-list w-11/12 border-t-4 pt-2 bg-gray-100 shadow-md p-2 relative border border-gray-300 mx-auto">
+        <Link to="/post" className="add-button absolute right-1 top-1 w-10 h-10 text-2xl text-white bg-gray-300 border-none rounded-lg text-center leading-10 shadow-md no-underline hover:bg-gray-400">
           +
         </Link>
-        <div style={{ marginTop: '40px' }}>
+        <div className="mt-10">
           {filteredPosts.map((post, index) => (
-            <div key={index} className="post-item">
-              <div className="post-item-left">
-                <span className="author">{post.author}</span>
+            <div key={index} className="post-item flex justify-between items-center py-2 border-b border-gray-300">
+              <div className="post-item-left flex text-left">
+                <span className="author mr-5">{post.author}</span>
                 <span className="title">{post.title}</span>
               </div>
-              <div className="post-item-right">
-                <span className="rating">{'★'.repeat(post.rating)}</span>
+              <div className="post-item-right flex text-right">
+                <span className="rating mr-5">{'★'.repeat(post.rating)}</span>
                 <span className="date">{post.date}</span>
               </div>
             </div>
@@ -103,30 +52,5 @@ const MainContent = ({ isLoggedIn, nickname, handleLogout }) => {
     </div>
   );
 };
-
-// const LoginPage = ({ onLogin }) => {
-//   const [inputNickname, setInputNickname] = useState(""); // 닉네임 입력 상태
-
-//   const handleSubmit = (e) => {
-//     e.preventDefault();
-//     onLogin(inputNickname); // 로그인 성공 처리
-//   };
-
-//   return (
-//     <div>
-//       <h2>Login Page</h2>
-//       <form onSubmit={handleSubmit}>
-//         <input
-//           type='text'
-//           placeholder='사용자 이름'
-//           required
-//           value={inputNickname}
-//           onChange={(e) => setInputNickname(e.target.value)} // 닉네임 업데이트
-//         />
-//         <button type='submit'>로그인</button>
-//       </form>
-//     </div>
-//   );
-// };
 
 export default Main;
