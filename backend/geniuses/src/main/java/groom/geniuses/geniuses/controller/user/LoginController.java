@@ -2,13 +2,17 @@ package groom.geniuses.geniuses.controller.user;
 
 import groom.geniuses.geniuses.config.SecurityConfig;
 import groom.geniuses.geniuses.dto.user.JoinRequest;
+import groom.geniuses.geniuses.jwt.CustomUserDetails;
 import groom.geniuses.geniuses.service.user.MemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.Response;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -23,6 +27,7 @@ import java.util.regex.Pattern;
 @Slf4j
 public class LoginController {
     private final MemberService memberService;
+    private AuthenticationManager authenticationManager;
     @GetMapping("/signup")
     public String joinPage() {
         log.info("GET - /api/auth/signup");
@@ -33,7 +38,7 @@ public class LoginController {
     @PostMapping("/signup")
     // @Valid @ModelAttribute - Content-type : application/x-www-form-urlencoded (form action 전송)
     // @RequestBody [DTO객체] - Content-type : application/json (json data 전송)
-    public ResponseEntity<?> join(@RequestBody JoinRequest joinRequest, BindingResult bindingResult, Model model) {
+    public ResponseEntity<?> join(@RequestBody JoinRequest joinRequest) {
         log.info("POST - /api/auth/signup");
         HttpHeaders headers = new HttpHeaders();
         // ID 중복 여부 확인
@@ -59,6 +64,16 @@ public class LoginController {
         }catch(Exception e){
             return new ResponseEntity<>(headers, HttpStatus.BAD_REQUEST);
         }
+    }
+    @ResponseBody
+    @PostMapping("login/form")
+    public ResponseEntity<?> formLogin(@RequestBody JoinRequest joinRequest){
+        log.info("POST - /api/auth/login/form");
+        HttpHeaders headers = new HttpHeaders();
+        if(memberService.formLogin(headers, joinRequest)){
+            return new ResponseEntity<>(headers, HttpStatus.OK);
+        }
+        return new ResponseEntity<>("ID/PW 를 올바르게 입력해주세요", HttpStatus.BAD_REQUEST);
     }
     @GetMapping("login/google")
     public String googleLogin() {

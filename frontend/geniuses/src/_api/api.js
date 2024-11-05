@@ -27,42 +27,33 @@ const api = {
   signup: () => API_BASE_URL + API + AUTH + SIGNUP,
   logout: () => API_BASE_URL + API + AUTH + LOGOUT,
 };
-const axiosHeaders = {
-  'Content-Type': 'multipart/form-data',
-  'Access-Control-Allow-Credentials': true,
-  // 'Access-Control-Allow-Origin': 'https://localhost:8080, https://localhost:3000',
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'Authorization, RefreshToken, Content-Type',
-  'Access-Control-Allow-Methods': '*',
-  // 'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT, DELETE, OPTIONS',
-};
+// const axiosHeaders = {
+//   'Content-Type': 'multipart/form-data',
+//   'Access-Control-Allow-Credentials': true,
+//   // 'Access-Control-Allow-Origin': 'https://localhost:8080, https://localhost:3000',
+//   'Access-Control-Allow-Origin': '*',
+//   'Access-Control-Allow-Headers': 'Authorization, RefreshToken, Content-Type',
+//   'Access-Control-Allow-Methods': '*',
+//   // 'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT, DELETE, OPTIONS',
+// };
 const axiosApi = {
-  login: (loginId, password) => {
-    alert(loginId, password);
+  login: data => {
     return axios
-      .post(
-        api.loginForm(),
-        {
-          loginId: loginId,
-          password: password,
-        },
-        {
-          axiosHeaders,
-        },
-      )
+      .post(api.loginForm(), data)
       .then(response => {
-        console.log(response.headers.getAuthorization());
-        console.log(response.headers.RefreshToken);
+        console.log(response.headers['authorization']);
+        console.log(response.headers['refreshtoken']);
+        window.location.href = '/';
       })
       .catch(error => {
-        alert('error');
+        console.log(error.response);
+        alert(error.response.data);
         console.log(error);
       });
   },
-  // signup: (nickname, loginId, password, passwordCheck, comment) => {
   signup: data => {
     return axios
-      .post(api.signup(), data, axiosHeaders)
+      .post(api.signup(), data)
       .then(response => {
         window.location.href = '/login';
       })

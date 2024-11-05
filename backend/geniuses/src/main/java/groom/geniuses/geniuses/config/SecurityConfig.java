@@ -1,5 +1,6 @@
 package groom.geniuses.geniuses.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import groom.geniuses.geniuses.dao.user.MemberRepository;
 import groom.geniuses.geniuses.jwt.CustomUserDetails;
 import groom.geniuses.geniuses.jwt.JWTUtil;
@@ -19,6 +20,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -41,7 +43,7 @@ public class SecurityConfig {
 
     private final AuthenticationConfiguration configuration;
     private final JWTUtil jwtUtil;
-    private final MemberRepository memberRepository;
+    private final ObjectMapper objectMapper;
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
@@ -54,6 +56,9 @@ public class SecurityConfig {
         corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"));
         corsConfiguration.setAllowCredentials(true);
         corsConfiguration.setAllowedHeaders(List.of("Authorization", "RefreshToken", "Content-Type"));
+        corsConfiguration.addExposedHeader("Authorization");
+        corsConfiguration.addExposedHeader("RefreshToken");
+        corsConfiguration.addExposedHeader("Content-Type");
         corsConfiguration.setMaxAge(3600L);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfiguration);
@@ -73,23 +78,24 @@ public class SecurityConfig {
 //                .requestMatchers(HttpMethod.[GET/POST/PATCH/PUT/DELETE], domain + "[api uri]/**").authenticated() // 로그인만 한다면 모든 사용자가 접근 가능
                 .anyRequest().permitAll());
         // 폼 로그인 방식 설정
-        http.formLogin((auth) -> auth
-                .loginPage(SecurityConfig.LOGIN)
-                .loginProcessingUrl("/api/auth/login/form")
-                .usernameParameter("loginId")
-                .passwordParameter("password")
-                .defaultSuccessUrl(SecurityConfig.HOME)
-                .successHandler((request, response, authentication)->{
-                    log.info("formLogin successHandler auth");
-                    setJWT(response, authentication);
-                    response.sendRedirect(SecurityConfig.HOME);
-                })
-                .failureUrl("/oauth2-login/login")
-                .failureHandler((request, response, authentication)->{
-                    log.info("formLogin failureHandler\nrequest : {}\nresponse : {}\nauthentication : {}\n\n", request, response, authentication);
-                    response.sendRedirect(SecurityConfig.LOGIN);
-                })
-                .permitAll());
+        http.formLogin((auth)-> auth.disable());
+//        http.formLogin((auth) -> auth
+//                .loginPage(SecurityConfig.LOGIN)
+//                .loginProcessingUrl("/api/auth/login/form")
+//                .usernameParameter("loginId")
+//                .passwordParameter("password")
+//                .defaultSuccessUrl(SecurityConfig.HOME)
+//                .successHandler((request, response, authentication)->{
+//                    log.info("formLogin successHandler auth");
+//                    setJWT(response, authentication);
+//                    response.sendRedirect(SecurityConfig.HOME);
+//                })
+//                .failureUrl("/oauth2-login/login")
+//                .failureHandler((request, response, authentication)->{
+//                    log.info("formLogin failureHandler\nrequest : {}\nresponse : {}\nauthentication : {}\n\n", request, response, authentication);
+//                    response.sendRedirect(SecurityConfig.LOGIN);
+//                })
+//                .permitAll());
         // OAuth 2.0 로그인 방식 설정
         http.oauth2Login((auth) -> auth
                 .loginPage(SecurityConfig.LOGIN)
@@ -118,6 +124,7 @@ public class SecurityConfig {
         // 세션 설정
         http.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 //         새로 만든 로그인 필터를 원래의 (UsernamePasswordAuthenticationFilter)의 자리에 넣음
+//        http.addFilterAfter(new JsonUsernamePasswordAuthenticationFilter(objectMapper), LogoutFilter.class);
         http.addFilterAt(new LoginFilter(authenticationManager(configuration), jwtUtil), UsernamePasswordAuthenticationFilter.class);
         // 로그인 필터 이전에 JWTFilter를 넣음
         http.addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class);

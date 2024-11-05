@@ -17,17 +17,18 @@ function InputText(props) {
 export default function Login() {
   const handlerSubmit = event => {
     event.preventDefault();
-    alert('test');
     const formData = new FormData(event.currentTarget);
-    alert(formData.get('loginId'), formData.get('password'));
-    axiosApi.login(formData.get('loginId'), formData.get('password'));
+    const jsonLogin = {
+      loginId: formData.get('loginId'),
+      password: formData.get('password'),
+    };
+    axiosApi.login(jsonLogin);
   };
   return (
     <div>
       <div className="font-bold text-2xl">로그인</div>
       <br />
-      <form method="post" action={api.loginForm()}>
-        {/* <form method="post" onSubmit={handlerSubmit}> */}
+      <form method="post" onSubmit={handlerSubmit}>
         <InputText type="text" id="loginId" placeHolder="example@google.com" />
         <InputText type="password" id="password" placeHolder="password" />
         <div className="text-right">

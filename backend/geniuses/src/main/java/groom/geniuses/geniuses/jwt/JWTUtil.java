@@ -25,8 +25,8 @@ public class JWTUtil {
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("id", String.class);
     }
     // loginId 반환
-    public String getLoginId(String token) {
-        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("loginId", String.class);
+    public String getNickname(String token) {
+        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("nickname", String.class);
     }
     // role 반환
     public String getRole(String token) {
@@ -37,10 +37,10 @@ public class JWTUtil {
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getExpiration().before(new Date());
     }
     // 토큰 생성
-    public String createAccessToken(String id, String loginId, String role) {
+    public String createAccessToken(String id, String nickname, String role) {
         return Jwts.builder()
                 .claim("id", id)
-                .claim("loginId", loginId)
+                .claim("nickname", nickname)
                 .claim("role", role)
                 .issuedAt(new Date(System.currentTimeMillis()))                 // 현재 발행시간 설정
                 .expiration(new Date(System.currentTimeMillis() + AT_EXPIRED_MS))   // 만료시간 설정

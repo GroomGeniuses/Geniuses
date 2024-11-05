@@ -36,7 +36,7 @@ public class JWTFilter extends OncePerRequestFilter {
         // Authorization에서 Bearer 접두사 제거
         String token = authorization.split(" ")[1];
         String id = jwtUtil.getPKId(token);
-        String loginId = jwtUtil.getLoginId(token);
+        String nickname = jwtUtil.getNickname(token);
         String role = jwtUtil.getRole(token);
 
         // accessToken 소멸 시간 검증
@@ -59,14 +59,14 @@ public class JWTFilter extends OncePerRequestFilter {
                 return;
             }
             // accessToken 재발급
-            token = jwtUtil.createAccessToken(id, loginId, role);
+            token = jwtUtil.createAccessToken(id, nickname, role);
             response.addHeader("Authorization", "Bearer " + token);
         }
 
         // 최종적으로 token 검증 완료 => 일시적인 session 생성
         // session에 user 정보 설정
         Member member = new Member();
-        member.setUserId(loginId);
+        member.setUserId(id);
         // 매번 요청마다 DB 조회해서 password 초기화 할 필요 x => 정확한 비밀번호 넣을 필요 없음
         // 따라서 임시 비밀번호 설정!
         member.setPassword("임시 비밀번호");
