@@ -5,6 +5,7 @@ import SocialLoginButton from './SocialLoginButton';
 export default function GoogleLogin() {
   return (
     <SocialLoginButton
+      provider={api.loginGoogleAuth()}
       bgColor="bg-white"
       viewBox="0 0 48 48"
       enableBackground="new 0 0 48 48"

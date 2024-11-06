@@ -1,15 +1,16 @@
 package groom.geniuses.geniuses.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import groom.geniuses.geniuses.dao.user.MemberRepository;
+import groom.geniuses.geniuses.dao.user.MemberRole;
 import groom.geniuses.geniuses.jwt.CustomUserDetails;
 import groom.geniuses.geniuses.jwt.JWTUtil;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -20,11 +21,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.List;
 
 @Configuration
@@ -43,8 +45,9 @@ public class SecurityConfig {
 
     private final AuthenticationConfiguration configuration;
     private final JWTUtil jwtUtil;
-    private final ObjectMapper objectMapper;
 
+    @Bean
+    public BCryptPasswordEncoder bCryptPasswordEncoder(){ return new BCryptPasswordEncoder(); }
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
@@ -72,37 +75,44 @@ public class SecurityConfig {
         http.headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));
         // api 접근 권한 설정
         http.authorizeHttpRequests((auth) -> auth
+                .requestMatchers(HttpMethod.DELETE, "/api/auth/test").hasAuthority(MemberRole.ADMIN.name()) // ADMIN 권한시 가능
+                .requestMatchers(HttpMethod.PUT, "/api/auth/test").hasAuthority(MemberRole.USER.name()) // USER 권한시 가능
+                .requestMatchers(HttpMethod.PATCH, "/api/auth/test").hasAuthority(MemberRole.USER.name()) // USER 권한시 가능
+                .requestMatchers(HttpMethod.POST, "/api/auth/test").authenticated() // 로그인시가능
+                .requestMatchers(HttpMethod.GET, "/api/auth/test").permitAll() // 모두가능
                 .requestMatchers(PathRequest.toH2Console()).permitAll() // h2console 접근 모두 허용
                 // [/**] : 뒤에 붙은 모든 경로 포함
 //                .requestMatchers(HttpMethod.[GET/POST/PATCH/PUT/DELETE], domain + "[api uri]/**").hasAuthority(MemberRole.ADMIN.name()) // 권한지정
 //                .requestMatchers(HttpMethod.[GET/POST/PATCH/PUT/DELETE], domain + "[api uri]/**").authenticated() // 로그인만 한다면 모든 사용자가 접근 가능
                 .anyRequest().permitAll());
         // 폼 로그인 방식 설정
-        http.formLogin((auth)-> auth.disable());
-//        http.formLogin((auth) -> auth
-//                .loginPage(SecurityConfig.LOGIN)
-//                .loginProcessingUrl("/api/auth/login/form")
-//                .usernameParameter("loginId")
-//                .passwordParameter("password")
-//                .defaultSuccessUrl(SecurityConfig.HOME)
-//                .successHandler((request, response, authentication)->{
-//                    log.info("formLogin successHandler auth");
+//        http.formLogin((auth)-> auth.disable());
+        http.formLogin((auth) -> auth
+                .loginPage(SecurityConfig.LOGIN)
+                .loginProcessingUrl("/api/auth/login/form")
+                .usernameParameter("loginId")
+                .passwordParameter("password")
+                .defaultSuccessUrl(SecurityConfig.HOME)
+                .successHandler((request, response, authentication)->{
+                    log.info("formLogin successHandler auth");
 //                    setJWT(response, authentication);
-//                    response.sendRedirect(SecurityConfig.HOME);
-//                })
-//                .failureUrl("/oauth2-login/login")
-//                .failureHandler((request, response, authentication)->{
-//                    log.info("formLogin failureHandler\nrequest : {}\nresponse : {}\nauthentication : {}\n\n", request, response, authentication);
-//                    response.sendRedirect(SecurityConfig.LOGIN);
-//                })
-//                .permitAll());
+                    setJWTCookie(response, authentication);
+                    response.sendRedirect(SecurityConfig.HOME);
+                })
+                .failureUrl("/oauth2-login/login")
+                .failureHandler((request, response, authentication)->{
+                    log.info("formLogin failureHandler\nrequest : {}\nresponse : {}\nauthentication : {}\n\n", request, response, authentication);
+                    response.sendRedirect(SecurityConfig.LOGIN);
+                })
+                .permitAll());
         // OAuth 2.0 로그인 방식 설정
         http.oauth2Login((auth) -> auth
                 .loginPage(SecurityConfig.LOGIN)
                 .defaultSuccessUrl(SecurityConfig.HOME)
                 .successHandler((request, response, authentication)->{
                     log.info("oauth2Login successHandler auth");
-                    setJWT(response, authentication);
+//                    setJWT(response, authentication);
+                    setJWTCookie(response, authentication);
                     response.sendRedirect(SecurityConfig.HOME);
                 })
                 .failureUrl(SecurityConfig.LOGIN)
@@ -123,15 +133,13 @@ public class SecurityConfig {
         http.httpBasic((auth -> auth.disable()));
         // 세션 설정
         http.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-//         새로 만든 로그인 필터를 원래의 (UsernamePasswordAuthenticationFilter)의 자리에 넣음
-//        http.addFilterAfter(new JsonUsernamePasswordAuthenticationFilter(objectMapper), LogoutFilter.class);
+        // 새로 만든 로그인 필터를 원래의 (UsernamePasswordAuthenticationFilter)의 자리에 넣음
         http.addFilterAt(new LoginFilter(authenticationManager(configuration), jwtUtil), UsernamePasswordAuthenticationFilter.class);
-        // 로그인 필터 이전에 JWTFilter를 넣음
+        // LoginFilter 이전에 JWTFilter를 넣음
         http.addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class);
         return http.build();
     }
-
-    private void setJWT(HttpServletResponse response, Authentication authentication) {
+    private void setJWTCookie(HttpServletResponse response, Authentication authentication) throws UnsupportedEncodingException {
         CustomUserDetails principal = (CustomUserDetails) authentication.getPrincipal();
         // AT RT 생성
         String id = principal.getPKId();
@@ -140,10 +148,29 @@ public class SecurityConfig {
         String accessToken = jwtUtil.createAccessToken(id, loginId, memberRole);
         String refreshToken = jwtUtil.createRefreshToken();
 
-        response.addHeader("Authorization", "Bearer " + accessToken);
-        response.addHeader("RefreshToken", "Bearer " + refreshToken);
+        Cookie atCookie = new Cookie("access_token", URLEncoder.encode("Bearer " + accessToken, "utf-8"));
+        Cookie rtCookie = new Cookie("refresh_token", URLEncoder.encode("Bearer " + refreshToken, "utf-8"));
+        atCookie.setHttpOnly(true); // HttpOnly 설정
+        atCookie.setSecure(true);
+        atCookie.setPath("/"); // 모든 경로에서 접근 가능
+        atCookie.setMaxAge(60 * 60 * 24); // 만료 시간 (예: 24시간)
+        rtCookie.setHttpOnly(true); // HttpOnly 설정
+        atCookie.setSecure(true);
+        rtCookie.setPath("/"); // 모든 경로에서 접근 가능
+        rtCookie.setMaxAge(60 * 60 * 24); // 만료 시간 (예: 24시간)
+        response.addCookie(atCookie);
+        response.addCookie(rtCookie);
     }
-
-    @Bean
-    public BCryptPasswordEncoder bCryptPasswordEncoder(){ return new BCryptPasswordEncoder(); }
+//    private void setJWT(HttpServletResponse response, Authentication authentication) {
+//        CustomUserDetails principal = (CustomUserDetails) authentication.getPrincipal();
+//        // AT RT 생성
+//        String id = principal.getPKId();
+//        String loginId = principal.getUsername();
+//        String memberRole = principal.getRole().name();
+//        String accessToken = jwtUtil.createAccessToken(id, loginId, memberRole);
+//        String refreshToken = jwtUtil.createRefreshToken();
+//
+//        response.addHeader("Authorization", "Bearer " + accessToken);
+//        response.addHeader("RefreshToken", "Bearer " + refreshToken);
+//    }
 }

@@ -1,23 +1,7 @@
 import React from 'react';
 import TextButton from '../components/TextButton';
+import InputText from '../components/signup/InputText';
 import api, { axiosApi } from '../_api/api';
-function InputText(props) {
-  return (
-    <div className="grid grid-cols-3 w-96">
-      <label htmlFor={props.id} className="text-left">
-        {props.labelText}
-      </label>
-      <input
-        required={props.required}ㅊ
-        type={props.type}
-        id={props.id}
-        name={props.id}
-        placeholder={props.placeHolder}
-        className="col-span-2 rounded-md border-2 p-1 h-10 border-black dark:text-black"
-      />
-    </div>
-  );
-}
 export default function Signup() {
   const handlerSubmit = event => {
     event.preventDefault();
