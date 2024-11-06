@@ -22,6 +22,7 @@ public class Member {
     private String password;
     private String userName;
     private String image;
+    private String introduce;
 //    private String email;
 //    private Date createdUserDate;
 
