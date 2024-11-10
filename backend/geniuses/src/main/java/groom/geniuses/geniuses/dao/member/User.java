@@ -14,6 +14,7 @@ public class User {
 
     private String userName;
     private String introduce;
+    private String image;
 
     public Long getUserId() {
         return userId;
@@ -37,5 +38,13 @@ public class User {
 
     public void setIntroduce(String introduce) {
         this.introduce = introduce;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
     }
 }
