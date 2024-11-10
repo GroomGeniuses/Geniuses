@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/MemberPage")
@@ -33,6 +34,17 @@ public class UserController {
             return ResponseEntity.ok().build(); // 수정 성공
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build(); // 수정 실패
+        }
+    }
+
+    // 프로필 이미지 업로드
+    @PostMapping("/{userId}/profile-image")
+    public ResponseEntity<String> uploadImage(@PathVariable Long userId, @RequestParam("file") MultipartFile file) {
+        boolean updated = userService.updateImage(userId, file);
+        if (updated) {
+            return ResponseEntity.ok("프로필 이미지 업데이트 성공");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("프로필 이미지 업데이트 실패");
         }
     }
 }
