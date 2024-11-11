@@ -13,21 +13,6 @@ const MemberPage = ({ userId }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = 1;
 
-  const handleImageChange = file => {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    fetch(`/api/MemberPage/${userId}/profile-image`, {
-      method: 'POST',
-      body: formData,
-    })
-    .then(response => response.json())
-    .then(data => {
-      setProfileImageUrl(data.profileImageUrl);
-    })
-    .catch(error => console.error('이미지 업로드 실패:', error));
-  };
-
   const handleDescriptionChange = newDescription => {
     setUserIntroduce(newDescription);
   };
@@ -40,6 +25,10 @@ const MemberPage = ({ userId }) => {
     });
 
     if (response.ok) setIsEditing(false);
+  };
+
+  const handleImageChange = newProfileImageUrl => {
+    setProfileImageUrl(newProfileImageUrl);
   };
 
   const handlePageClick = pageNumber => {
