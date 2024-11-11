@@ -3,19 +3,12 @@ import React, { useState, useEffect } from 'react';
 const Profile = ({ userId, userName, userDescription, profileImageUrl, onDescriptionChange, onSave, onImageChange }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [newDescription, setNewDescription] = useState(userDescription);
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(profileImageUrl);
 
   useEffect(() => {
     setNewDescription(userDescription);
-  }, [userDescription]);
-
-  const handleImageChange = event => {
-    const file = event.target.files[0];
-    if (file) {
-      setSelectedImage(URL.createObjectURL(file));
-      onImageChange(file);
-    }
-  };
+    setSelectedImage(profileImageUrl);
+  }, [userDescription, profileImageUrl]);
 
   const handleDescriptionChange = e => {
     setNewDescription(e.target.value);
@@ -27,11 +20,30 @@ const Profile = ({ userId, userName, userDescription, profileImageUrl, onDescrip
     setIsEditing(false);
   };
 
+  const handleImageChange = event => {
+    const file = event.target.files[0];
+    if (file) {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      fetch(`/api/MemberPage/${userId}/profile-image`, {
+        method: 'POST',
+        body: formData,
+      })
+        .then(response => response.json())
+        .then(data => {
+          setSelectedImage(data.profileImageUrl);
+          onImageChange(data.profileImageUrl);
+        })
+        .catch(error => console.error('이미지 업로드 실패:', error));
+    }
+  };
+
   return (
     <div className="profile-container flex flex-row items-center ml-5">
       <div className="profile-circle w-36 h-36 rounded-full border-2 border-black overflow-hidden flex justify-center items-center">
         <img
-          src={selectedImage || profileImageUrl || '/user_profile.png'}
+          src={selectedImage || '/user_profile.png'}
           alt="Profile"
           className="profile-image w-full h-auto"
         />
@@ -64,12 +76,12 @@ const Profile = ({ userId, userName, userDescription, profileImageUrl, onDescrip
                 />
                 <label
                   htmlFor="image-upload"
-                  className="cursor-pointer bg-green-500 text-white border-none text-sm rounded hover:bg-green-600"
+                  className="cursor-pointer bg-green-500 text-white rounded hover:bg-green-600"
                 >
                   이미지 변경
                 </label>
               </div>
-              <button className="edit-profile bg-green-500 text-white border-none rounded cursor-pointer text-sm w-[80px] hover:bg-green-600" onClick={() => setIsEditing(true)}>
+              <button className="edit-profile bg-green-500 text-white border-none rounded-sm cursor-pointer text-sm w-[80px] ml-auto hover:bg-green-600" onClick={() => setIsEditing(true)}>
                 프로필 수정
               </button>
             </div>
