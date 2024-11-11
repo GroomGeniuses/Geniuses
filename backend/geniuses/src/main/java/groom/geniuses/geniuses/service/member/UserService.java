@@ -1,7 +1,7 @@
 package groom.geniuses.geniuses.service.member;
 
 import groom.geniuses.geniuses.dto.member.UserDto;
-import groom.geniuses.geniuses.dao.member.User;
+import groom.geniuses.geniuses.dao.user.Member;
 import groom.geniuses.geniuses.dao.user.MemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,7 +11,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
@@ -23,61 +22,68 @@ public class UserService {
     private MemberRepository memberRepository;
 
     // 사용자 정보 가져오기
-    public UserDto getUserById(Long userId) {
-        User user = memberRepository.findById(userId).orElseThrow(() ->
+    public UserDto getUserById(String userId) {
+        Member member = memberRepository.findById(userId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다.")
         );
 
-        return new UserDto(user.getUserName(), user.getIntroduce());
+        return new UserDto(member.getUserId(), member.getUserName(), member.getIntroduce(), member.getImage());
     }
 
     // 사용자 정보 수정하기
-    public boolean updateUser(Long userId, UserDto userDto) {
-        User user = memberRepository.findById(userId).orElseThrow(() ->
+    public boolean updateUser(String userId, UserDto userDto) {
+        Member member = memberRepository.findById(userId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다.")
         );
 
-        user.setUserName(userDto.getUserName());
-        user.setIntroduce(userDto.getIntroduce());
+        member.setUserName(userDto.getUserName());
+        member.setIntroduce(userDto.getIntroduce());
+        member.setImage(userDto.getImage());
 
-        memberRepository.save(user);
+        memberRepository.save(member);
 
         return true;
     }
 
     // 프로필 이미지 업로드
-    public boolean updateImage(Long userId, MultipartFile file) {
-        User user = memberRepository.findById(userId).orElseThrow(() ->
+    public boolean updateImage(String userId, MultipartFile file) {
+        Member member = memberRepository.findById(userId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다.")
         );
 
         try {
-            // 이미지 파일 디렉토리
-            String uploadDir = "uploads/profile_images/"; // 서버 내에 저장할 디렉토리
+            String uploadDir = System.getProperty("user.dir") + "/uploads/profile_images/";
             File directory = new File(uploadDir);
+
+            // 디렉토리 생성 여부 확인
             if (!directory.exists()) {
-                directory.mkdirs(); // 디렉토리가 없으면 생성
+                boolean directoryCreated = directory.mkdirs();
+                if (directoryCreated) {
+                    System.out.println("디렉토리 생성 성공");
+                } else {
+                    System.out.println("디렉토리 생성 실패");
+                }
             }
 
-            // 파일 이름 중복 방지
+            // 파일 중복 방지
             String originalFilename = file.getOriginalFilename();
             String fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
             String newFileName = UUID.randomUUID().toString() + fileExtension;
 
-            // 파일 저장 경로 설정
+            // 파일 저장 경로
             Path path = Paths.get(uploadDir + newFileName);
             file.transferTo(path.toFile());
 
-            // 저장된 이미지 URL을 데이터베이스에 업데이트
+            // 이미지 업데이트
             String imageUrl = "/uploads/profile_images/" + newFileName;
-            user.setProfileImageUrl(imageUrl);
+            member.setImage(imageUrl);
 
-            // 사용자 정보 저장
-            memberRepository.save(user);
+            memberRepository.save(member);
 
             return true;
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "파일 저장 오류");
         }
     }
+
 }
