@@ -7,10 +7,13 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import store from './_store/store';
 import Main from './pages/Main';
+import Post from './pages/Post';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import MemberPage from './pages/MemberPage';
 import Base from './components/BaseAuth';
+import PostWrite from "./pages/PostWrite";
+import PostView from "./pages/PostView";
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -20,6 +23,9 @@ root.render(
         <Route path="/" element={<App />}>
           <Route path="" element={<Main />} />
           <Route path="main" element={<Main />} />
+          <Route path="post" element={<Post />} />
+          <Route path="post/:postId" element={<PostView />} />
+          <Route path="post/write" element={<PostWrite />} />
           <Route path="login" element={<Base component={<Login />} />} />
           <Route path="signup" element={<Base component={<Signup />} />} />
           <Route path="member/:memberId" element={<MemberPage />} />
