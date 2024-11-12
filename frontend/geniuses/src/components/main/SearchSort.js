@@ -18,8 +18,8 @@ const SearchSort = ({ searchTerm, setSearchTerm, sortType, setSortType }) => {
           인기순
         </button>
         <button
-          className={`px-4 py-2 ml-2 text-base cursor-pointer whitespace-nowrap ${sortType === 'date' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black'}`}
-          onClick={() => setSortType('date')}
+          className={`px-4 py-2 ml-2 text-base cursor-pointer whitespace-nowrap ${sortType === 'post_at' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black'}`}
+          onClick={() => setSortType('post_at')}
         >
           최신순
         </button>
