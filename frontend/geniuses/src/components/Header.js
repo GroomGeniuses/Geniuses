@@ -67,6 +67,7 @@ export default function NavBar() {
         <StyledNav>
           <Navigation>
             <Link to="/">Main</Link>
+            <Link to="/post">Post</Link>
             <Link to="/login">Login</Link>
             <Link to="/member/1">Mypage</Link>
           </Navigation>
