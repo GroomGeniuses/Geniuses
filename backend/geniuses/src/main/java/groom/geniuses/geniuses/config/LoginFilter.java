@@ -24,6 +24,26 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final JWTUtil jwtUtil;
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
+        log.info("Authentication start");
+//        if ("application/json".equals(request.getContentType())) {
+//            log.info("Authentication application/json true");
+//            try {
+//                @SuppressWarnings("unchecked")
+//                Map<String, String> authRequest = (new ObjectMapper()).readValue(request.getInputStream(), Map.class);
+//                log.info("authRequest");
+//                String loginId = authRequest.get("loginId");
+//                log.info("loginId");
+//                String password = authRequest.get("password");
+//                log.info("password");
+//                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(loginId, password);
+//                log.info("UsernamePasswordAuthenticationToken");
+//                log.info("attemptAuthentication request\nloginId/password: {} / {}", loginId, password);
+//                return authenticationManager.authenticate(authToken);
+//            } catch (IOException e) {
+//                log.info("IOException");
+//                throw new RuntimeException(e);
+//            }
+//        }
         String path = request.getRequestURI();
         log.info("Authentication attemptAuthentication() api uri: {}", path);
         String loginId = obtainUsername(request);

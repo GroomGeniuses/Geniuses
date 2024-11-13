@@ -4,7 +4,7 @@ import api from '../../_api/api';
 export default function SocialLoginButton(props) {
   return (
     <div>
-      <a href={api.loginKakaoAuth()}>
+      <a href={props.provider}>
         <button
           className={`mt-1 inline-flex items-center justify-center whitespace-nowrap rounded-md ${props.bgColor} text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 w-full text-zinc-950 py-6`}>
           <span className="mr-2">

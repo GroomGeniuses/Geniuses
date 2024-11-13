@@ -1,26 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Profile from '../components/memberPage/Profile';
 import Tabs from '../components/memberPage/Tabs';
 import useFetchUserData from '../components/memberPage/useFetchUserData';
 import Pagination from '../components/memberPage/Pagination';
 
-const MemberPage = ({ nickname, userId }) => {
+const MemberPage = ({ userId }) => {
   const navigate = useNavigate();
-  const { userDescription, setUserDescription } = useFetchUserData(userId);
+  const { userName, userIntroduce, setUserIntroduce, profileImageUrl, setProfileImageUrl } = useFetchUserData(userId);
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState('작성한 글');
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = 1;
 
+  const handleDescriptionChange = newDescription => {
+    setUserIntroduce(newDescription);
+  };
+
   const handleSave = async () => {
     const response = await fetch(`/api/users/${userId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ description: userDescription }),
+      body: JSON.stringify({ userName, introduce: userIntroduce }),
     });
 
     if (response.ok) setIsEditing(false);
+  };
+
+  const handleImageChange = newProfileImageUrl => {
+    setProfileImageUrl(newProfileImageUrl);
   };
 
   const handlePageClick = pageNumber => {
@@ -31,12 +39,13 @@ const MemberPage = ({ nickname, userId }) => {
     <div className="profile-page mx-auto p-5">
       <div className="member-container flex flex-col items-center w-full max-w-xl p-2 border border-gray-300 rounded-lg bg-gray-100 shadow-md mx-auto">
         <Profile
-          nickname={nickname}
-          userDescription={userDescription}
-          isEditing={isEditing}
-          onEdit={() => setIsEditing(!isEditing)}
+          userId={userId}
+          userName={userName}
+          userDescription={userIntroduce}
+          profileImageUrl={profileImageUrl}
+          onDescriptionChange={handleDescriptionChange}
           onSave={handleSave}
-          onDescriptionChange={e => setUserDescription(e.target.value)}
+          onImageChange={handleImageChange}
         />
         <div className="post-container flex flex-col items-center">
           <Tabs activeTab={activeTab} onTabClick={setActiveTab} />

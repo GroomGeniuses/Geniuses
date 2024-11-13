@@ -12,8 +12,9 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import MemberPage from './pages/MemberPage';
 import Base from './components/BaseAuth';
-import PostWrite from "./pages/PostWrite";
-import PostView from "./pages/PostView";
+import PostWrite from './pages/PostWrite';
+import PostView from './pages/PostView';
+import Test from './pages/Test';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -21,6 +22,7 @@ root.render(
     <Provider store={store}>
       <Routes>
         <Route path="/" element={<App />}>
+          <Route path="test" element={<Test />} />
           <Route path="" element={<Main />} />
           <Route path="main" element={<Main />} />
           <Route path="post" element={<Post />} />

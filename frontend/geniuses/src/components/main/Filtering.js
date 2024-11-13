@@ -1,9 +1,9 @@
 const Filtering = ({ posts, searchTerm, sortType }) => {
   const sortedPosts = posts.sort((a, b) => {
     if (sortType === 'popularity') {
-      return b.rating - a.rating;
+      return b.interests - a.interests;
     }
-    return new Date(b.date) - new Date(a.date);
+    return new Date(b.post_at) - new Date(a.post_at);
   });
 
   const filteredPosts = sortedPosts.filter(post =>

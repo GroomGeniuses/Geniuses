@@ -5,6 +5,7 @@ import SocialLoginButton from './SocialLoginButton';
 export default function KakaoLogin() {
   return (
     <SocialLoginButton
+      provider={api.loginKakaoAuth()}
       bgColor="bg-yellow-300"
       viewBox="0 0 2500 2500"
       enableBackground="new 0 0 2500 2500"
